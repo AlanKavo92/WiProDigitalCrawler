@@ -7,39 +7,99 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.HashSet;
 
+/**
+ * 
+ * @author Alan Kavanagh
+ *
+ */
 public class WiProCrawler {
 
-    private HashSet<String> links;
-    private String allowed_domain;
-    
-    public WiProCrawler(String allowed_domain) {
-    	this.allowed_domain = allowed_domain;
-        this.links = new HashSet<String>();
-    }
+	private HashSet<String> internal_links;
+	private HashSet<String> external_links;
+	private HashSet<String> static_content;
 
-    public void getPageLinks(String URL) {
-        if (!links.contains(URL)) {
-            try {
-                if (links.add(URL)) {
-                    System.out.println(URL);
-                }
+	private String allowed_domain;
 
-                Document document = Jsoup.connect(URL).get();
-                Elements linksOnPage = document.select("a[href]");
+	public WiProCrawler(String allowed_domain) {
+		this.allowed_domain = allowed_domain;
+		this.internal_links = new HashSet<String>();
+		this.external_links = new HashSet<String>();
+		this.static_content = new HashSet<String>();
+	}
 
-                for (Element page : linksOnPage) {
-                	if(page.attr("abs:href").startsWith(allowed_domain))
-                		getPageLinks(page.attr("abs:href"));
-                }
-            } catch (IOException e) {
-                System.err.println("For '" + URL + "': " + e.getMessage());
-            }
-        }
-    }
+	/**
+	 * Recursively gets all links on a page
+	 * 
+	 * @param URL: URL to parse
+	 */
+	public void getPageLinks(String URL) 
+	{
+		if (!internal_links.contains(URL))
+		{
+			try
+			{
+				internal_links.add(URL);
 
-    public static void main(String[] args) {
-    	String domain = "https://wiprodigital.com";
-    	WiProCrawler wpc = new WiProCrawler(domain);
-    	wpc.getPageLinks(domain);
-    }
+				Document document = Jsoup.connect(URL).get();
+				Elements linksOnPage = document.select("a[href]");
+
+				for (Element page : linksOnPage)
+				{
+					if (page.attr("abs:href").startsWith(allowed_domain))
+					{
+						getPageLinks(page.attr("abs:href"));
+					} 
+					else
+					{
+						if (page.attr("abs:href").endsWith(".png"))
+						{
+							static_content.add(page.attr("abs:href"));
+						} 
+						else
+						{
+							external_links.add(page.attr("abs:href"));
+						}
+					}
+				}
+			} 
+			catch (IOException e)
+			{
+				System.err.println("For '" + URL + "': " + e.getMessage());
+			}
+		}
+	}
+	
+	public void getInternalLinks()
+	{
+		for (String s : internal_links)
+		{
+			System.out.println(String.format("Internal: %s", s));
+		}
+	}
+	
+	public void getExternalLinks()
+	{
+		for (String s : external_links)
+		{
+			System.out.println(String.format("External: %s", s));
+		}
+	}
+	
+	public void getStaticContent()
+	{
+		for (String s : static_content)
+		{
+			System.out.println(String.format("Static Content: %s", s));
+		}
+	}
+
+	public static void main(String[] args) {
+		System.out.println("Application started");
+		String domain = "https://wiprodigital.com";
+		WiProCrawler wpc = new WiProCrawler(domain);
+		wpc.getPageLinks(domain);
+		wpc.getInternalLinks();
+		wpc.getExternalLinks();
+		wpc.getStaticContent();
+	}
 }
