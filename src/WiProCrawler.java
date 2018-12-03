@@ -3,6 +3,7 @@ import org.jsoup.Jsoup;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,9 +18,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * 
@@ -33,16 +31,12 @@ public class WiProCrawler {
 	private static final String DOMAIN = "https://wiprodigital.com";
 	private static final String SITEMAP = "sitemap.xml";
 
-
-	private HashSet<String> internal_links;
+	private LinkedHashSet<String> internal_links;
 	private HashSet<String> external_links;
 	private HashSet<String> static_content;
 
-	private String allowed_domain;
-
-	public WiProCrawler(String allowed_domain) {
-		this.allowed_domain = allowed_domain;
-		this.internal_links = new HashSet<String>();
+	public WiProCrawler() {
+		this.internal_links = new LinkedHashSet<String>();
 		this.external_links = new HashSet<String>();
 		this.static_content = new HashSet<String>();
 		LOGGER.fine("WiProCrawler: WiProCrawler initialised");
@@ -63,7 +57,7 @@ public class WiProCrawler {
 				org.jsoup.select.Elements linksOnPage = document.select("a[href]");
 
 				for (org.jsoup.nodes.Element page : linksOnPage) {
-					if (page.attr("abs:href").startsWith(allowed_domain)) {
+					if (page.attr("abs:href").startsWith(DOMAIN)) {
 						getPageLinks(page.attr("abs:href"));
 					} 
 					else {
@@ -90,7 +84,7 @@ public class WiProCrawler {
 	}
 
 	/**
-	 * Writes a sitemap to sitemap.xml
+	 * Writes a sitemap file to path of sitemap param
 	 * @param sitemap: Path to write the sitemap
 	 */
 	private void writeSitemapXML(String sitemap) {
@@ -98,39 +92,49 @@ public class WiProCrawler {
 			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 	
-			Document doc = docBuilder.newDocument();
-			Element rootElement = doc.createElement("urlset");
+			org.w3c.dom.Document doc = docBuilder.newDocument();
+
+			org.w3c.dom.Element rootElement = doc.createElement("urlset");
 			doc.appendChild(rootElement);
 			
-			Attr attr = doc.createAttribute("xmlns");
+			org.w3c.dom.Attr attr = doc.createAttribute("xmlns");
 			attr.setValue("http://www.sitemaps.org/schemas/sitemap/0.9");
 			rootElement.setAttributeNode(attr);
 	
+			/*
+			 * Internal Links
+			 */
 			for (String url: internal_links) {
-				Element staff = doc.createElement("url");
-				rootElement.appendChild(staff);
+				org.w3c.dom.Element ele = doc.createElement("url");
+				rootElement.appendChild(ele);
 				attr = doc.createAttribute("loc");
-				Element firstname = doc.createElement("loc");
-				firstname.appendChild(doc.createTextNode(url));
-				staff.appendChild(firstname);
+				org.w3c.dom.Element loc = doc.createElement("loc");
+				loc.appendChild(doc.createTextNode(url));
+				ele.appendChild(loc);
 			}
-			
+				
+			/*
+			 * External Links
+			 */
 			for (String url: external_links) {
-				Element staff = doc.createElement("external-url");
-				rootElement.appendChild(staff);
+				org.w3c.dom.Element ele = doc.createElement("external-url");
+				rootElement.appendChild(ele);
 				attr = doc.createAttribute("loc");
-				Element firstname = doc.createElement("loc");
-				firstname.appendChild(doc.createTextNode(url));
-				staff.appendChild(firstname);
+				org.w3c.dom.Element loc = doc.createElement("loc");
+				loc.appendChild(doc.createTextNode(url));
+				ele.appendChild(loc);
 			}
 			
+			/*
+			 * Static Content
+			 */
 			for (String url: static_content) {
-				Element staff = doc.createElement("static-content");
-				rootElement.appendChild(staff);
+				org.w3c.dom.Element ele = doc.createElement("static-content");
+				rootElement.appendChild(ele);
 				attr = doc.createAttribute("loc");
-				Element firstname = doc.createElement("loc");
-				firstname.appendChild(doc.createTextNode(url));
-				staff.appendChild(firstname);
+				org.w3c.dom.Element loc = doc.createElement("loc");
+				loc.appendChild(doc.createTextNode(url));
+				ele.appendChild(loc);
 			}
 	
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -156,7 +160,7 @@ public class WiProCrawler {
 		LOGGER.setLevel(Level.FINE);
 		LOGGER.info("WiProCrawler: Application started");
 		LOGGER.info(String.format("WiProCrawler: Root domain set to: %s", DOMAIN));
-		WiProCrawler wpc = new WiProCrawler(DOMAIN);
+		WiProCrawler wpc = new WiProCrawler();
 		wpc.getPageLinks(DOMAIN);
 		wpc.writeSitemapXML(SITEMAP);
 	}
