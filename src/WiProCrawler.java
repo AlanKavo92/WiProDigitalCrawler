@@ -6,6 +6,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 /**
  * 
@@ -13,6 +16,8 @@ import java.util.HashSet;
  *
  */
 public class WiProCrawler {
+	
+    private static final Logger logger = Logger.getLogger(WiProCrawler.class.getName());
 
 	private HashSet<String> internal_links;
 	private HashSet<String> external_links;
@@ -25,6 +30,7 @@ public class WiProCrawler {
 		this.internal_links = new HashSet<String>();
 		this.external_links = new HashSet<String>();
 		this.static_content = new HashSet<String>();
+		logger.fine("WiProCrawler initialised");
 	}
 
 	/**
@@ -34,71 +40,64 @@ public class WiProCrawler {
 	 */
 	public void getPageLinks(String URL) 
 	{
-		if (!internal_links.contains(URL))
-		{
-			try
-			{
+		if (!internal_links.contains(URL)) {
+			try {
+				logger.fine(String.format("Found new internal link: %s", URL));
 				internal_links.add(URL);
 
 				Document document = Jsoup.connect(URL).get();
 				Elements linksOnPage = document.select("a[href]");
 
-				for (Element page : linksOnPage)
-				{
-					if (page.attr("abs:href").startsWith(allowed_domain))
-					{
+				for (Element page : linksOnPage) {
+					if (page.attr("abs:href").startsWith(allowed_domain)) {
 						getPageLinks(page.attr("abs:href"));
 					} 
-					else
-					{
-						// [^\\s]+ - 1 or more anything	
-						// (?i) - Ignore case sensitive for following patterns
-						// (jpg|png|gif) - Image formats to match
-						if (page.attr("abs:href").matches("([^\\s]+(\\.(?i)(jpg|png|gif))$)"))
-						{
+					else {
+						/*
+						 * [^\\s]+ - 1 or more anything
+						 * (?i) - Ignore case sensitive for following patterns
+						 * (jpg|png|gif) - Image formats to match
+						 */
+						if (page.attr("abs:href").matches("([^\\s]+(\\.(?i)(jpg|png|gif|mp4|jpeg))$)")) {
+							logger.fine(String.format("Found new static content: %s", page.attr("abs:href")));
 							static_content.add(page.attr("abs:href"));
 						} 
-						else
-						{
+						else {
+							logger.fine(String.format("Found new external link: %s", page.attr("abs:href")));
 							external_links.add(page.attr("abs:href"));
 						}
 					}
 				}
 			} 
-			catch (IOException e)
-			{
-				System.err.println("For '" + URL + "': " + e.getMessage());
+			catch (IOException e) {
+				logger.warning("For '" + URL + "': " + e.getMessage());
 			}
 		}
 	}
 	
-	public void getInternalLinks()
-	{
-		for (String s : internal_links)
-		{
-			System.out.println(String.format("Internal: %s", s));
+	public void getInternalLinks() {
+		for (String s : internal_links) {
+			logger.info(String.format("Internal: %s", s));
 		}
 	}
 	
-	public void getExternalLinks()
-	{
-		for (String s : external_links)
-		{
-			System.out.println(String.format("External: %s", s));
+	public void getExternalLinks() {
+		for (String s : external_links) {
+			logger.info(String.format("External: %s", s));
 		}
 	}
 	
-	public void getStaticContent()
-	{
-		for (String s : static_content)
-		{
-			System.out.println(String.format("Static Content: %s", s));
+	public void getStaticContent() {
+		for (String s : static_content) {
+			logger.info(String.format("Static Content: %s", s));
 		}
 	}
 
 	public static void main(String[] args) {
-		System.out.println("Application started");
 		String domain = "https://wiprodigital.com";
+		logger.setLevel(Level.FINE);
+		logger.info("Application started");
+		logger.info(String.format("Root domain set to: %s", domain));
 		WiProCrawler wpc = new WiProCrawler(domain);
 		wpc.getPageLinks(domain);
 		wpc.getInternalLinks();
