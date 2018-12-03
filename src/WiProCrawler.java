@@ -51,7 +51,10 @@ public class WiProCrawler {
 					} 
 					else
 					{
-						if (page.attr("abs:href").endsWith(".png"))
+						// [^\\s]+ - 1 or more anything	
+						// (?i) - Ignore case sensitive for following patterns
+						// (jpg|png|gif) - Image formats to match
+						if (page.attr("abs:href").matches("([^\\s]+(\\.(?i)(jpg|png|gif))$)"))
 						{
 							static_content.add(page.attr("abs:href"));
 						} 
