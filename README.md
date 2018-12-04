@@ -28,20 +28,20 @@ Studied the scrapy module and built a more efficient bot using Python
 For this solution:
 Unit Tests
 
-[x] Java
-[x] Couple of hours
-[x] Limited to one domain
-[x] Visit all pages within the domain
-[x] Doesnt follow external links
-[x] Output is Structured sitemap (XML)
-[x] Sitemap includes internal links
-[x] Sitemap includes external links
-[x] Sitemap includes static content (images+video)
+- [x] Java
+- [x] Couple of hours
+- [x] Limited to one domain
+- [x] Visit all pages within the domain
+- [x] Doesnt follow external links
+- [x] Output is Structured sitemap (XML)
+- [x] Sitemap includes internal links
+- [x] Sitemap includes external links
+- [x] Sitemap includes static content (images+video)
 
 
-[x] Working webcrawler
-[x] README.md
-[x] How to build and run
-[x] Reasoning and tradeoffs
-[x] Explanation of what can be done with more time
-[x] Project builds/runs/tests as per instructions
+- [x] Working webcrawler
+- [x] README.md
+- [x] How to build and run
+- [x] Reasoning and tradeoffs
+- [x] Explanation of what can be done with more time
+- [x] Project builds/runs/tests as per instructions
